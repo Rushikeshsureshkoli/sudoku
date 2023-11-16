@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 20px;
+background: hsla(328, 75%, 45%, 1);
+
+background: linear-gradient(90deg, hsla(328, 75%, 45%, 1) 0%, hsla(269, 85%, 41%, 1) 100%);
+
+background: -moz-linear-gradient(90deg, hsla(328, 75%, 45%, 1) 0%, hsla(269, 85%, 41%, 1) 100%);
+
+background: -webkit-linear-gradient(90deg, hsla(328, 75%, 45%, 1) 0%, hsla(269, 85%, 41%, 1) 100%);
+
+filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#C81D77", endColorstr="#6710C2", GradientType=1 );
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+            gap: 2px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin: 10px auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            line-height: 40px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+
+        .cell.fixed {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #333;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .board-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .game-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="board-container">
+        <h1>Sudoku Game</h1>
+        <div id="sudoku-board" class="board"></div>
+        <div class="game-actions">
+            <button onClick="checkSudoku()">Check Sudoku</button>
+            <button onClick="showFinalSudoku()">Show Final Sudoku</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            createSudokuBoard();
+        });
+
+        function createSudokuBoard() {
+            const board = document.getElementById('sudoku-board');
+
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('contenteditable', 'true');
+                cell.addEventListener('input', () => {
+                    validateInput(cell);
+                });
+                board.appendChild(cell);
+            }
+
+            initializeSudoku();
+        }
+
+        function initializeSudoku() {
+            const initialSudoku = [
+                5, 3, 0, 0, 7, 0, 0, 0, 0,
+                6, 0, 0, 1, 9, 5, 0, 0, 0,
+                0, 9, 8, 0, 0, 0, 0, 6, 0,
+                8, 0, 0, 0, 6, 0, 0, 0, 3,
+                4, 0, 0, 8, 0, 3, 0, 0, 1,
+                7, 0, 0, 0, 2, 0, 0, 0, 6,
+                0, 6, 0, 0, 0, 0, 2, 8, 0,
+                0, 0, 0, 4, 1, 9, 0, 0, 5,
+                0, 0, 0, 0, 8, 0, 0, 7, 9
+            ];
+
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                if (initialSudoku[index] !== 0) {
+                    cell.textContent = initialSudoku[index];
+                    cell.classList.add('fixed');
+                }
+            });
+        }
+
+        function validateInput(cell) {
+            const value = parseInt(cell.textContent);
+
+            if (isNaN(value) || value < 1 || value > 9) {
+                cell.textContent = '';
+            }
+
+            checkSudoku();  // Trigger Sudoku check when input changes
+        }
+
+        function checkSudoku() {
+            const cells = document.querySelectorAll('.cell');
+            const values = [];
+
+            cells.forEach(cell => {
+                values.push(parseInt(cell.textContent) || 0);
+            });
+
+            if (values && isSudokuValid(values)) {
+                alert('Sudoku is correct!');
+            } else {
+                alert('Sudoku is incorrect. Please check your solution.');
+            }
+        }
+
+        function isSudokuValid(values) {
+            for (let i = 0; i < 9; i++) {
+                const row = values.slice(i * 9, i * 9 + 9);
+                if (hasDuplicates(row)) {
+                    return false;
+                }
+            }
+
+            for (let i = 0; i < 9; i++) {
+                const column = [];
+                for (let j = 0; j < 9; j++) {
+                    column.push(values[i + j * 9]);
+                }
+                if (hasDuplicates(column)) {
+                    return false;
+                }
+            }
+
+            for (let i = 0; i < 9; i += 3) {
+                for (let j = 0; j < 9; j += 3) {
+                    const subgrid = [];
+                    for (let k = 0; k < 3; k++) {
+                        for (let l = 0; l < 3; l++) {
+                            subgrid.push(values[i + k + (j + l) * 9]);
+                        }
+                    }
+                    if (hasDuplicates(subgrid)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function hasDuplicates(arr) {
+            const nonZeroValues = arr.filter(value => value !== 0);
+            const uniqueValues = new Set(nonZeroValues);
+            return nonZeroValues.length !== uniqueValues.size;
+        }
+
+        function showFinalSudoku() {
+            const cells = document.querySelectorAll('.cell');
+            const finalSudoku = getFinalSudoku();
+
+            cells.forEach((cell, index) => {
+                cell.textContent = finalSudoku[index] !== 0 ? finalSudoku[index] : '';
+                if (finalSudoku[index] !== 0) {
+                    cell.classList.add('fixed');
+                }
+            });
+        }
+
+        function getFinalSudoku() {
+            return [
+                5, 3, 4, 6, 7, 8, 9, 1, 2,
+                6, 7, 2, 1, 9, 5, 3, 4, 8,
+                1, 9, 8, 3, 4, 2, 5, 6, 7,
+                8, 5, 9, 7, 6, 1, 4, 2, 3,
+                4, 2, 6, 8, 5, 3, 7, 9, 1,
+                7, 1, 3, 9, 2, 4, 8, 5, 6,
+                9, 6, 1, 5, 3, 7, 2, 8, 4,
+                2, 8, 7, 4, 1, 9, 6, 3, 5,
+                3, 4, 5, 2, 8, 6, 1, 7, 9
+            ];
+        }
+    </script>
+</body>
+</html>
